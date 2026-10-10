@@ -1,0 +1,7 @@
+dist
+out
+coverage
+.vercel
+node_modules
+package-lock.json
+claude-code-prompt-pozivnica.md

@@ -1,0 +1,31 @@
+{
+  // Server side: Vercel functions (api/), shared code, scripts and tooling.
+  // Vercel compiles api/ with this file. Relative imports MUST end in ".js",
+  // and NodeNext makes tsc enforce that (lokalno radi i bez, na Vercelu ne).
+  // The browser app has its own config in src/tsconfig.json.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "api",
+    "shared",
+    "scripts",
+    "tests",
+    "vite-plugins",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ]
+}

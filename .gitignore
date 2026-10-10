@@ -1,0 +1,21 @@
+# dependencies & build
+node_modules/
+dist/
+coverage/
+.vercel/
+*.tsbuildinfo
+
+# env / secrets — never commit
+.env
+.env.*
+!.env.example
+
+# real guest list and generated links — never commit
+data/households.csv
+data/*.csv
+!data/households.example.csv
+out/
+
+# OS / editor
+.DS_Store
+*.log
