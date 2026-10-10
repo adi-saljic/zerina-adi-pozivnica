@@ -1,0 +1,19 @@
+.page {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  line-height: 1.2;
+  margin: 0 0 var(--space-4);
+}
+
+/* Focus is moved here programmatically so screen readers announce the new
+   screen; the heading isn't interactive, so it needs no visible ring. */
+.title:focus,
+.title:focus-visible {
+  outline: none;
+}

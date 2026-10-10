@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="bs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#fbf8f3" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!--
+      Link preview (WhatsApp, Viber, Messenger…). These tags are static HTML:
+      crawlers don't run JavaScript. The __OG_*__ placeholders are filled in at
+      build time by vite-plugins/ogMeta.ts from shared/event.ts, src/i18n/bs.ts
+      and PUBLIC_BASE_URL. After changing the image, bump ?v= to bust caches.
+    -->
+    <title>__OG_TITLE__</title>
+    <meta name="description" content="__OG_DESCRIPTION__" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="bs_BA" />
+    <meta property="og:site_name" content="__OG_SITE_NAME__" />
+    <meta property="og:title" content="__OG_TITLE__" />
+    <meta property="og:description" content="__OG_DESCRIPTION__" />
+    <meta property="og:url" content="__OG_BASE_URL__/" />
+    <meta property="og:image" content="__OG_BASE_URL__/preview.jpg?v=1" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="__OG_IMAGE_ALT__" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="__OG_TITLE__" />
+    <meta name="twitter:description" content="__OG_DESCRIPTION__" />
+    <meta name="twitter:image" content="__OG_BASE_URL__/preview.jpg?v=1" />
+  </head>
+  <body>
+    <noscript>Za prikaz pozivnice uključite JavaScript u pregledniku.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

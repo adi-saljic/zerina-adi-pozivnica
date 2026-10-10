@@ -1,0 +1,12 @@
+# Private wedding invitation: nothing here should be indexed.
+# Link-preview bots may fetch the page so WhatsApp/Messenger can show the
+# og: image; the X-Robots-Tag header still tells them not to index it.
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: *
+Disallow: /

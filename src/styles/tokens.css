@@ -1,0 +1,45 @@
+/*
+ * Design tokens. The future design should only need to change values here
+ * (plus the *.module.css files); no component logic depends on them.
+ */
+:root {
+  /* Colors */
+  --color-bg: #fbf8f3;
+  --color-surface: #ffffff;
+  --color-text: #1f1b16;
+  --color-muted: #625a52;
+  --color-border: #ddd5ca;
+  --color-border-strong: #8f857a;
+  --color-accent: #7a4b36;
+  --color-accent-contrast: #ffffff;
+  --color-disabled: #d8d2ca;
+  --color-disabled-text: #5c554e;
+  --color-danger: #a8261a;
+  --color-focus: #1d4ed8;
+
+  /* Typography */
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-heading: Georgia, 'Times New Roman', serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --line-height: 1.5;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Shape & layout */
+  --radius: 0.5rem;
+  --page-max-width: 36rem;
+  --tap-size: 44px;
+
+  /* Focus */
+  --focus-ring: 3px solid var(--color-focus);
+  --focus-offset: 2px;
+}
