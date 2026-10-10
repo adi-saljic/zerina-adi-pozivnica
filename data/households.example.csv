@@ -1,8 +1,9 @@
-household,side,table_name,guest_name,role,sort_order,display_name
-H001,adi,Sto 1,Marko Marković,muz,1,Marko i Ana
-H001,adi,Sto 1,Ana Marković,zena,2,Marko i Ana
-H002,zerina,Sto 2,Emir Hadžić,muz,1,Porodica Hadžić
-H002,zerina,Sto 2,Lejla Hadžić,zena,2,Porodica Hadžić
-H002,zerina,Sto 2,Amar Hadžić,dijete,3,Porodica Hadžić
-H002,zerina,Sto 2,Sara Hadžić,dijete,4,Porodica Hadžić
-H003,zajednicki,,Tarik Begić,gost,1,Tarik
+household_key,display_name,salutation,side,guest_name,role,is_placeholder,table_name,sort_order,review
+Marko i Ana,Marko i Ana,Dragi,adi,Marko,gost,false,Sto 1,1,
+Marko i Ana,Marko i Ana,Dragi,adi,Ana,partner,false,Sto 1,2,
+Porodica Hadžić,Porodica Hadžić,Dragi,zerina,Emir,muz,false,Sto 2,1,
+Porodica Hadžić,Porodica Hadžić,Dragi,zerina,Lejla,zena,false,Sto 2,2,
+Porodica Hadžić,Porodica Hadžić,Dragi,zerina,Hadžićevo dijete 1,dijete,true,Djeca,3,upiši pravo ime
+Porodica Hadžić,Porodica Hadžić,Dragi,zerina,Hadžićevo dijete 2,dijete,true,Djeca,4,upiši pravo ime
+Šejla,Šejla,Draga,zerina,Šejla,gost,false,Sto 3,1,
+Šejla,Šejla,Draga,zerina,Šejla +1,partner,true,Sto 3,2,upiši pravo ime

@@ -1,9 +1,18 @@
-# Pozivnica · Adi & Zerina
+# Pozivnica · Zerina & Adi
 
-Online pozivnica sa potvrdom dolaska (RSVP). Svako domaćinstvo dobija svoj link
-(`https://domena/?g=XXXXXXXXXX` ili `/p/XXXXXXXXXX`). Gost vidi članove svog
-domaćinstva, za svakog označi **Dolazi / Ne dolazi**, može ostaviti poruku i klikne
+Online pozivnica sa potvrdom dolaska (RSVP). Svako domaćinstvo dobija svoj link,
+npr. `https://domena/zoka-i-danijela-k7x2p9Qa3m`. Gost vidi pozdrav ("Dragi Zoka i Danijela,")
+i članove svog domaćinstva, za svakog označi **Dolazi / Ne dolazi**, može ostaviti poruku i klikne
 **Spasi**. Odgovor može mijenjati do roka. Vi pratite odgovore na `/admin`.
+
+### Linkovi: kod je jedina autorizacija, slug je ukras
+
+- Link je `/<slug>-<kod>`. **Kod** (zadnjih 10 znakova iza zadnjeg `-`, nasumičan base58) jedini
+  identifikuje domaćinstvo. **Slug** (`zoka-i-danijela`) se pravi iz `display_name` (č/ć→c, š→s, ž→z,
+  đ→dj) i služi samo da link bude čitljiv.
+- Ako se `display_name` promijeni nakon slanja, kod ostaje isti, a slug se ažurira. Stari link i dalje radi
+  i stranica prebaci adresu na novi URL (`history.replaceState`). **Poslani linkovi se nikad ne kvare.**
+- Stari formati `/?g=KOD` i `/p/KOD` i dalje rade i vode na novi URL.
 
 **Stack:** Vite + React + TypeScript · Vercel Functions (`api/`) · Neon Postgres · zod · vitest
 
@@ -67,19 +76,25 @@ Ako koristiš `vercel dev`, postavi `PUBLIC_BASE_URL=http://localhost:3000`.
 ## 4. Lista gostiju (`data/households.csv`)
 
 Pravi spisak je u `data/households.csv`. **Nije u gitu** (`.gitignore`). Primjer je u
-[`data/households.example.csv`](data/households.example.csv). Jedan red je jedan gost.
+[`data/households.example.csv`](data/households.example.csv). Jedan red je jedan član domaćinstva.
 
-| Kolona         | Obavezno | Vrijednosti                                                                  |
-| -------------- | -------- | ---------------------------------------------------------------------------- |
-| `household`    | da       | **Stalni ID domaćinstva**, npr. `H001`. Ne mijenjaj ga nakon slanja linkova. |
-| `side`         | da       | `adi`, `zerina`, `zajednicki`                                                |
-| `table_name`   | ne       | npr. `Sto 3` (može kasnije)                                                  |
-| `guest_name`   | da       | Ime i prezime gosta                                                          |
-| `role`         | da       | `muz`, `zena`, `partner`, `dijete`, `gost`                                   |
-| `sort_order`   | ne       | Redoslijed u domaćinstvu (1, 2, 3…). Ako fali, ide redom iz fajla            |
-| `display_name` | ne       | Ime koje gost vidi ("Zoka i Danijela"). Ako fali, koristi se `household`     |
+| Kolona           | Obavezno | Vrijednosti                                                                          |
+| ---------------- | -------- | ------------------------------------------------------------------------------------ |
+| `household_key`  | da       | **Stalni interni ključ**, npr. `Mama i tata (Adi)`. Gost ga ne vidi. Ne mijenjaj ga. |
+| `display_name`   | da       | Ime koje gost vidi, npr. `Mama i tata`. Dvije pozivnice smiju imati isto ime         |
+| `salutation`     | da       | `Dragi` ili `Draga` (pozdrav "Dragi Zoka i Danijela,")                               |
+| `side`           | da       | `zerina` ili `adi`                                                                   |
+| `guest_name`     | da       | Ime člana kako se prikazuje                                                          |
+| `role`           | da       | `muz`, `zena`, `partner`, `dijete`, `gost`                                           |
+| `is_placeholder` | ne       | `true` ako ime još nije pravo (`Ljubo +1`, `Zokino dijete 1`). Default `false`       |
+| `table_name`     | ne       | Sto **ovog gosta** (djeca mogu sjediti za dječijim stolom)                           |
+| `sort_order`     | da       | Redoslijed u domaćinstvu (1, 2, 3…). **Identitet gosta**: nove dodaj na kraj         |
+| `review`         | ne       | Vaše bilješke, seed ih ignoriše (kao i svaku drugu nepoznatu kolonu)                 |
 
-- Svi redovi istog domaćinstva moraju imati isti `side`, `table_name` i `display_name`.
+- Svi redovi istog domaćinstva moraju imati isti `display_name`, `salutation` i `side`.
+- **Placeholder članovi** se na stranici prikazuju kao "Pratnja" (partner) ili "Dijete" (inače "Gost"),
+  nikad kao "Ljubo +1". Gost može upisati pravo ime ("Ime (nije obavezno)"). Ono se sprema posebno
+  (`name_from_guest`) i nikad ne prepisuje `guest_name`. Admin i CSV export prikazuju upisano ime.
 - Može `,` ili `;` kao separator (Excel na bosanskim postavkama koristi `;`). Fajl mora biti **UTF-8**.
   U Excelu: _Save As → CSV UTF-8_. U Google Sheets: _File → Download → CSV_.
 - `Zajednički`, `Žena` i `Muž` su također OK: dijakritika i velika slova se normalizuju.
@@ -92,13 +107,16 @@ npm run db:seed -- --file data/drugi.csv
 
 Seed je **idempotentan**, pa ga pokreni ponovo poslije svake izmjene CSV-a:
 
-- nova domaćinstva i gosti se dodaju, a imena, uloge, stolovi i `display_name` se ažuriraju;
-- **kodovi (linkovi) i odgovori se nikad ne mijenjaju**. Ispravka tipfelera u imenu zadržava odgovor
-  (gost se prepoznaje po imenu, pa po `sort_order`);
-- ono što je u bazi, a nema ga u CSV-u, samo se prijavi. `--prune` to briše, ali ne dira domaćinstva koja
-  su otvorila link ili odgovorila ni goste koji su odgovorili. Za njih treba i `--force`;
-- greška u CSV-u (pogrešna uloga, duplo ime, različit sto u istom domaćinstvu…) prekida seed sa brojem reda
-  i ništa se ne upisuje.
+- domaćinstva se prepoznaju po `household_key`, a gosti unutar domaćinstva po `sort_order`;
+- nova domaćinstva i gosti se dodaju. Imena, uloge, stolovi, `is_placeholder`, `display_name`,
+  `salutation` i slug se ažuriraju;
+- **nikad ne dira** odgovore (`attending`), poruke, imena koja su gosti upisali, kodove ni vremena
+  otvaranja i odgovora. Kad placeholder dobije pravo ime (npr. "Ljubo +1" → "Amra"), odgovor ostaje;
+- ono što je u bazi, a nema ga u CSV-u, samo se prijavi kao upozorenje. `--prune` pokaže šta bi obrisao i
+  traži potvrdu (upiši `da`). Domaćinstva koja su otvorila link ili odgovorila, i gosti koji su odgovorili,
+  brišu se samo uz `--force`;
+- greška u CSV-u (pogrešna uloga, dupli `sort_order`, različit `salutation` u istom domaćinstvu…) prekida
+  seed sa brojem reda i ništa se ne upisuje.
 
 ## 5. Deploy na Vercel
 
@@ -133,11 +151,14 @@ upisuju pri buildu.
 PUBLIC_BASE_URL=https://pozivnica.example.ba npm run links:export
 ```
 
-`out/links.csv` (nije u gitu) ima jedan red po domaćinstvu:
+Pravi dva fajla u `out/` (nije u gitu):
 
-- `link`
-- `whatsapp_message`: gotova poruka, tekst se mijenja u `src/i18n/bs.ts` → `whatsapp.invite`
-- `whatsapp_url`: `wa.me` link koji otvori WhatsApp sa porukom, pa samo izabereš kontakt
+- **`out/links.csv`**, jedan red po domaćinstvu:
+  - `side`, `display_name`, `members` (članovi, razdvojeni zarezom), `url`
+  - `whatsapp_message`: gotova poruka sa pozdravom ("Dragi Zoka i Danijela, Zerina i Adi se
+    vjenčavaju…"); tekst se mijenja u `src/i18n/bs.ts` → `whatsapp.invite`
+  - `household_key` i `whatsapp_url` (`wa.me` link koji otvori WhatsApp sa porukom)
+- **`out/links.txt`**: isti podaci kao blok po domaćinstvu, lako za ručno kopiranje na mobitelu.
 
 Separator je `;` (Excel na bs postavkama). Za `,` dodaj `-- --sep=comma`.
 
@@ -146,8 +167,8 @@ Prije slanja pošalji jedan link sebi i provjeri preview (vidi 9).
 ## 8. Praćenje odgovora
 
 - **`/admin`**: unesi `ADMIN_TOKEN` (opcija "zapamti na ovom uređaju"). Prikazuje:
-  - ukupne brojke, po strani i po stolu
-  - ko nije odgovorio i ko nije otvorio link, sa dugmetom "Kopiraj link"
+  - ukupne brojke, po strani i po stolu (stol je po gostu: pozvano, dolazi, ne dolazi, bez odgovora)
+  - ko nije odgovorio i ko nije otvorio link, sa njihovim URL-om i dugmetom "Kopiraj link"
   - djelimične odgovore i poruke gostiju
   - dugme **Preuzmi CSV (Excel)**
 - API za curl:
@@ -165,8 +186,14 @@ og: tagovi su statični u `index.html`. Vrijednosti (naslov sa datumom, opis, ap
 upisuje build iz `shared/event.ts`, `src/i18n/bs.ts` i `PUBLIC_BASE_URL`. Slika je
 `public/preview.jpg`: 1200×630, ispod 300 KB (sad placeholder od ~26 KB).
 
+Preview je isti za svako domaćinstvo. `vercel.json` za svaku putanju bez tačke (osim `/api/*`) servira
+`index.html`, pa i `/<slug>-<kod>` linkovi imaju iste og: tagove, a statični fajlovi
+(`/preview.jpg`, `/robots.txt`) ostaju fajlovi.
+
 Testiranje nakon deploya:
 
+0. `curl -s https://<preview-url>/zoka-i-danijela-XXXXXXXXXX | grep og:` mora ispisati og: tagove
+   sa apsolutnim `https://` URL-om slike.
 1. [opengraph.xyz](https://www.opengraph.xyz): upiši link i provjeri naslov, opis i sliku.
 2. [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/): klikni **Scrape Again**.
    WhatsApp koristi isti format.

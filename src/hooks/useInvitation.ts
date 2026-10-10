@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { ApiError, fetchInvitation, submitRsvp } from '../lib/apiClient';
+import { canonicalizeUrl } from '../lib/invitationUrl';
 import { invitationReducer } from './invitationReducer';
 
 export function useInvitation(code: string | null) {
@@ -16,7 +17,11 @@ export function useInvitation(code: string | null) {
     if (!code || fetchedAttempt.current === attempt) return;
     fetchedAttempt.current = attempt;
     fetchInvitation(code).then(
-      (invitation) => dispatch({ type: 'loaded', invitation }),
+      (invitation) => {
+        dispatch({ type: 'loaded', invitation });
+        // ?g=, /p/ or an outdated slug → the current /<slug>-<code>.
+        canonicalizeUrl(window.location, window.history, invitation.slug, code);
+      },
       (error: unknown) => {
         if (error instanceof ApiError && error.code === 'not_found') dispatch({ type: 'notFound' });
         else {
@@ -41,6 +46,8 @@ export function useInvitation(code: string | null) {
         responses: invitation.guests.map((g) => ({
           guestId: g.id,
           attending: draft.answers[g.id] === true,
+          // The API accepts a name only for placeholder members.
+          ...(g.isPlaceholder ? { name: draft.names[g.id] ?? '' } : {}),
         })),
         message: draft.message,
       });
@@ -57,6 +64,7 @@ export function useInvitation(code: string | null) {
     state,
     setAnswer: (guestId: string, attending: boolean) =>
       dispatch({ type: 'answer', guestId, attending }),
+    setName: (guestId: string, name: string) => dispatch({ type: 'name', guestId, name }),
     setMessage: (message: string) => dispatch({ type: 'message', message }),
     save,
     edit: () => dispatch({ type: 'edit' }),

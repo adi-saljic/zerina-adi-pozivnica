@@ -22,14 +22,31 @@ const { default: summary } = await import('../../api/admin/summary.js');
 
 const CODE = 'Ab3dEf7hJk';
 const ids = [randomUUID(), randomUUID()] as const;
+// ids[0] is a real guest, ids[1] a placeholder member ("Zoka +1").
 const household: Household = {
   id: randomUUID(),
+  salutation: 'Dragi',
   displayName: 'Zoka i Danijela',
+  slug: 'zoka-i-danijela',
   message: null,
   respondedAt: null,
   guests: [
-    { id: ids[0], name: 'Zoka', role: 'muz', attending: null },
-    { id: ids[1], name: 'Danijela', role: 'zena', attending: null },
+    {
+      id: ids[0],
+      name: 'Zoka',
+      role: 'muz',
+      attending: null,
+      isPlaceholder: false,
+      nameFromGuest: null,
+    },
+    {
+      id: ids[1],
+      name: 'Zoka +1',
+      role: 'partner',
+      attending: null,
+      isPlaceholder: true,
+      nameFromGuest: null,
+    },
   ],
 };
 
@@ -84,8 +101,16 @@ describe('GET /api/invitation', () => {
       'isClosed',
       'message',
       'respondedAt',
+      'salutation',
+      'slug',
     ]);
-    expect(body).toMatchObject({ displayName: 'Zoka i Danijela', isClosed: false });
+    expect(body).toMatchObject({
+      salutation: 'Dragi',
+      displayName: 'Zoka i Danijela',
+      slug: 'zoka-i-danijela',
+      isClosed: false,
+    });
+    expect(body.guests[1]).toMatchObject({ isPlaceholder: true, nameFromGuest: null });
   });
 
   it('answers 404 with the same body for malformed and unknown codes', async () => {
@@ -127,6 +152,37 @@ describe('POST /api/rsvp', () => {
     expect(repo.saveRsvp).toHaveBeenCalledWith(
       expect.objectContaining({ invitationId: household.id, message: 'Vidimo se!' }),
     );
+  });
+
+  it('saves a typed-in name for a placeholder member', async () => {
+    const body = answers([true, true]);
+    body.responses[1] = { guestId: ids[1], attending: true, name: '  Amra  ' } as never;
+    const res = await rsvp.fetch(post(body));
+    expect(res.status).toBe(200);
+    expect(repo.saveRsvp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        responses: [
+          { guestId: ids[0], attending: true },
+          { guestId: ids[1], attending: true, name: 'Amra' },
+        ],
+      }),
+    );
+  });
+
+  it('rejects a name for a guest that is not a placeholder', async () => {
+    const body = answers([true, true]);
+    body.responses[0] = { guestId: ids[0], attending: true, name: 'Neko drugi' } as never;
+    const res = await rsvp.fetch(post(body));
+    expect(res.status).toBe(400);
+    expect(repo.saveRsvp).not.toHaveBeenCalled();
+  });
+
+  it('rejects an over-long name', async () => {
+    const body = answers([true, true]);
+    body.responses[1] = { guestId: ids[1], attending: true, name: 'x'.repeat(61) } as never;
+    const res = await rsvp.fetch(post(body));
+    expect(res.status).toBe(400);
+    expect(repo.saveRsvp).not.toHaveBeenCalled();
   });
 
   it('rejects a guest id from another household', async () => {

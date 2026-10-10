@@ -9,7 +9,8 @@ import { useInvitation } from './hooks/useInvitation';
 
 /** Picks the screen for the current state; all logic lives in useInvitation. */
 export function InvitationApp({ code }: { code: string | null }) {
-  const { state, setAnswer, setMessage, save, edit, backToForm, retryLoad } = useInvitation(code);
+  const { state, setAnswer, setName, setMessage, save, edit, backToForm, retryLoad } =
+    useInvitation(code);
 
   switch (state.status) {
     case 'loading':
@@ -22,6 +23,7 @@ export function InvitationApp({ code }: { code: string | null }) {
           invitation={state.invitation}
           draft={state.draft}
           onAnswer={setAnswer}
+          onName={setName}
           onMessage={setMessage}
           onSave={() => void save()}
         />

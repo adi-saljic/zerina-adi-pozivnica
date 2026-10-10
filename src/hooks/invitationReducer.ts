@@ -10,6 +10,8 @@ export type Answers = Record<string, boolean | null>;
 
 export interface Draft {
   answers: Answers;
+  /** Typed-in names of placeholder members ("Pratnja", "Dijete"), by guest id. */
+  names: Record<string, string>;
   message: string;
 }
 
@@ -30,6 +32,7 @@ export type InvitationAction =
   | { type: 'notFound' }
   | { type: 'loadFailed'; rateLimited: boolean }
   | { type: 'answer'; guestId: string; attending: boolean }
+  | { type: 'name'; guestId: string; name: string }
   | { type: 'message'; message: string }
   | { type: 'submit' }
   | { type: 'saved'; invitation: InvitationDto }
@@ -41,6 +44,9 @@ export type InvitationAction =
 export function draftFrom(invitation: InvitationDto): Draft {
   return {
     answers: Object.fromEntries(invitation.guests.map((g) => [g.id, g.attending])),
+    names: Object.fromEntries(
+      invitation.guests.filter((g) => g.isPlaceholder).map((g) => [g.id, g.nameFromGuest ?? '']),
+    ),
     message: invitation.message ?? '',
   };
 }
@@ -81,6 +87,13 @@ export function invitationReducer(
           ...state.draft,
           answers: { ...state.draft.answers, [action.guestId]: action.attending },
         },
+      };
+
+    case 'name':
+      if (state.status !== 'form') return state;
+      return {
+        ...state,
+        draft: { ...state.draft, names: { ...state.draft.names, [action.guestId]: action.name } },
       };
 
     case 'message':

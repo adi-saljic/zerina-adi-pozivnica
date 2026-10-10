@@ -69,3 +69,9 @@
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--color-border);
 }
+
+/* Plain text on purpose: clicking a guest's link would count as an open. */
+.url {
+  overflow-wrap: anywhere;
+  user-select: all;
+}

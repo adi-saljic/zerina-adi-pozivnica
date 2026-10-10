@@ -1,6 +1,7 @@
 import type { InvitationDto } from '../../shared/schemas';
 import { bs } from '../i18n/bs';
 import { formatDateTime } from '../lib/format';
+import { guestDisplayName } from '../lib/guestName';
 import styles from './common.module.css';
 import { EventDetails } from './EventDetails';
 import { Screen } from './Screen';
@@ -25,7 +26,7 @@ export function SavedScreen({
             <h2 className={styles.heading}>{bs.saved.coming}</h2>
             <ul>
               {coming.map((g) => (
-                <li key={g.id}>{g.name}</li>
+                <li key={g.id}>{guestDisplayName(g)}</li>
               ))}
             </ul>
           </>
@@ -35,7 +36,7 @@ export function SavedScreen({
             <h2 className={styles.heading}>{bs.saved.notComing}</h2>
             <ul>
               {notComing.map((g) => (
-                <li key={g.id}>{g.name}</li>
+                <li key={g.id}>{guestDisplayName(g)}</li>
               ))}
             </ul>
           </>

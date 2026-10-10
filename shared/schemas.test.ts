@@ -63,11 +63,41 @@ describe('rsvpRequestSchema', () => {
   });
 });
 
+describe('rsvp response name (placeholder members)', () => {
+  const item = (name: string) => ({
+    code: validCode,
+    responses: [{ guestId: randomUUID(), attending: true, name }],
+  });
+
+  it('trims, collapses whitespace and strips control characters', () => {
+    const parsed = rsvpRequestSchema.parse(item(`  Amra${String.fromCharCode(0)}\n  Begić  `));
+    expect(parsed.responses[0]?.name).toBe('Amra Begić');
+  });
+
+  it('accepts 60 characters and rejects longer names', () => {
+    expect(rsvpRequestSchema.safeParse(item('a'.repeat(60))).success).toBe(true);
+    expect(rsvpRequestSchema.safeParse(item('a'.repeat(61))).success).toBe(false);
+    // Measured after trimming.
+    expect(rsvpRequestSchema.safeParse(item(` ${'a'.repeat(60)} `)).success).toBe(true);
+  });
+});
+
 describe('invitationDtoSchema', () => {
   it('accepts the API shape', () => {
     const dto = {
+      salutation: 'Dragi',
       displayName: 'Zoka i Danijela',
-      guests: [{ id: randomUUID(), name: 'Zoka', role: 'muz', attending: null }],
+      slug: 'zoka-i-danijela',
+      guests: [
+        {
+          id: randomUUID(),
+          name: 'Zoka',
+          role: 'muz',
+          attending: null,
+          isPlaceholder: false,
+          nameFromGuest: null,
+        },
+      ],
       message: null,
       respondedAt: null,
       deadline: '2027-05-15T21:59:59.000Z',

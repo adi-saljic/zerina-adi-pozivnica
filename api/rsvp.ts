@@ -26,7 +26,7 @@ export default route({
     const now = new Date();
 
     const result = validateRsvp({
-      householdGuestIds: household ? household.guests.map((g) => g.id) : null,
+      householdGuests: household?.guests ?? null,
       responses,
       deadline,
       now,

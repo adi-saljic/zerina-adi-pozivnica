@@ -51,21 +51,26 @@ export function ogMeta(): Plugin {
         );
       }
     },
-    transformIndexHtml(html) {
-      const values: Record<string, string> = {
-        __OG_BASE_URL__: baseUrl,
-        __OG_TITLE__: bs.og.title,
-        __OG_DESCRIPTION__: bs.og.description,
-        __OG_IMAGE_ALT__: bs.og.imageAlt,
-        __OG_SITE_NAME__: event.coupleNames,
-      };
-      let out = html;
-      for (const [placeholder, value] of Object.entries(values)) {
-        out = out.replaceAll(placeholder, escapeHtml(value));
-      }
-      const leftover = /__OG_[A-Z_]+__/.exec(out);
-      if (leftover) throw new Error(`[og-meta] unknown placeholder ${leftover[0]} in index.html`);
-      return out;
+    transformIndexHtml: {
+      // Before Vite's own HTML processing, which would otherwise treat the og:image
+      // placeholder as a relative asset URL and prefix it with "/".
+      order: 'pre',
+      handler(html) {
+        const values: Record<string, string> = {
+          __OG_BASE_URL__: baseUrl,
+          __OG_TITLE__: bs.og.title,
+          __OG_DESCRIPTION__: bs.og.description,
+          __OG_IMAGE_ALT__: bs.og.imageAlt,
+          __OG_SITE_NAME__: event.coupleNames,
+        };
+        let out = html;
+        for (const [placeholder, value] of Object.entries(values)) {
+          out = out.replaceAll(placeholder, escapeHtml(value));
+        }
+        const leftover = /__OG_[A-Z_]+__/.exec(out);
+        if (leftover) throw new Error(`[og-meta] unknown placeholder ${leftover[0]} in index.html`);
+        return out;
+      },
     },
   };
 }

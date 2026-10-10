@@ -8,23 +8,28 @@ export type RsvpValidationResult =
   | { ok: true }
   | { ok: false; error: 'not_found' }
   | { ok: false; error: 'closed' }
-  | { ok: false; error: 'duplicate_guest' | 'unknown_guest' | 'missing_guest'; guestIds: string[] };
+  | {
+      ok: false;
+      error: 'duplicate_guest' | 'unknown_guest' | 'missing_guest' | 'name_not_allowed';
+      guestIds: string[];
+    };
 
 /**
  * Server-side RSVP rules (pure, so it is unit-tested without a database):
- * the invitation exists, the deadline has not passed, and the responses cover
- * exactly the guests of this invitation: no foreign ids, no duplicates, none missing.
+ * the invitation exists, the deadline has not passed, the responses cover
+ * exactly the guests of this invitation (no foreign ids, no duplicates, none
+ * missing), and a typed-in name is only accepted for placeholder members.
  */
 export function validateRsvp(input: {
-  /** Guest ids of the invitation, or null if the code does not exist. */
-  householdGuestIds: readonly string[] | null;
+  /** Guests of the invitation, or null if the code does not exist. */
+  householdGuests: readonly { id: string; isPlaceholder: boolean }[] | null;
   responses: readonly RsvpResponseItem[];
   deadline: Date;
   now: Date;
 }): RsvpValidationResult {
-  const { householdGuestIds, responses, deadline, now } = input;
+  const { householdGuests, responses, deadline, now } = input;
 
-  if (householdGuestIds === null) return { ok: false, error: 'not_found' };
+  if (householdGuests === null) return { ok: false, error: 'not_found' };
   if (isRsvpClosed(deadline, now)) return { ok: false, error: 'closed' };
 
   const seen = new Set<string>();
@@ -37,12 +42,19 @@ export function validateRsvp(input: {
     return { ok: false, error: 'duplicate_guest', guestIds: [...duplicates] };
   }
 
-  const household = new Set(householdGuestIds);
-  const unknown = [...seen].filter((id) => !household.has(id));
+  const byId = new Map(householdGuests.map((g) => [g.id, g]));
+  const unknown = [...seen].filter((id) => !byId.has(id));
   if (unknown.length > 0) return { ok: false, error: 'unknown_guest', guestIds: unknown };
 
-  const missing = householdGuestIds.filter((id) => !seen.has(id));
+  const missing = householdGuests.filter((g) => !seen.has(g.id)).map((g) => g.id);
   if (missing.length > 0) return { ok: false, error: 'missing_guest', guestIds: missing };
+
+  const namedRealGuests = responses
+    .filter((r) => r.name !== undefined && !byId.get(r.guestId)?.isPlaceholder)
+    .map((r) => r.guestId);
+  if (namedRealGuests.length > 0) {
+    return { ok: false, error: 'name_not_allowed', guestIds: namedRealGuests };
+  }
 
   return { ok: true };
 }

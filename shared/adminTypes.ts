@@ -11,13 +11,13 @@ export interface HouseholdBrief {
   displayName: string;
   householdKey: string;
   side: Side;
-  tableName: string | null;
   guests: number;
   unanswered: number;
   openCount: number;
   firstOpenedAt: string | null;
   lastOpenedAt: string | null;
   respondedAt: string | null;
+  /** Canonical personal URL: <base>/<slug>-<code> */
   link: string;
 }
 
@@ -31,7 +31,7 @@ export interface AdminSummary {
     householdsResponded: number;
   };
   bySide: (AttendanceCounts & { side: Side; households: number })[];
-  /** tableName null = no table assigned yet. */
+  /** Per guest table (guests.table_name); null = no table assigned yet. */
   byTable: (AttendanceCounts & { tableName: string | null })[];
   notResponded: HouseholdBrief[];
   notOpened: HouseholdBrief[];

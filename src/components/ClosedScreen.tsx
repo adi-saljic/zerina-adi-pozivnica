@@ -1,6 +1,7 @@
 import type { InvitationDto } from '../../shared/schemas';
 import { bs } from '../i18n/bs';
 import { formatDateTime } from '../lib/format';
+import { guestDisplayName } from '../lib/guestName';
 import styles from './common.module.css';
 import { EventDetails } from './EventDetails';
 import { Screen } from './Screen';
@@ -21,7 +22,7 @@ export function ClosedScreen({ invitation }: { invitation: InvitationDto }) {
         <dl className={styles.details}>
           {invitation.guests.map((g) => (
             <div key={g.id}>
-              <dt>{g.name}</dt>
+              <dt>{guestDisplayName(g)}</dt>
               <dd>{answerLabel(g.attending)}</dd>
             </div>
           ))}

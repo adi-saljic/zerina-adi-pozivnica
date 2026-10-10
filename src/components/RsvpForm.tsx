@@ -12,12 +12,14 @@ export function RsvpForm({
   invitation,
   draft,
   onAnswer,
+  onName,
   onMessage,
   onSave,
 }: {
   invitation: InvitationDto;
   draft: Draft;
   onAnswer: (guestId: string, attending: boolean) => void;
+  onName: (guestId: string, name: string) => void;
   onMessage: (message: string) => void;
   onSave: () => void;
 }) {
@@ -43,7 +45,9 @@ export function RsvpForm({
             key={guest.id}
             guest={guest}
             value={draft.answers[guest.id] ?? null}
+            name={draft.names[guest.id] ?? ''}
             onChange={(attending) => onAnswer(guest.id, attending)}
+            onNameChange={(name) => onName(guest.id, name)}
           />
         ))}
 

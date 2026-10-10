@@ -74,7 +74,7 @@ function HouseholdList({ title, items }: { title: string; items: HouseholdBrief[
                     {h.lastOpenedAt ? `${h.openCount}× · ${formatDateTime(h.lastOpenedAt)}` : '—'}
                   </td>
                   <td>
-                    <CopyButton text={h.link} />
+                    <span className={styles.url}>{h.link}</span> <CopyButton text={h.link} />
                   </td>
                 </tr>
               ))}

@@ -8,9 +8,25 @@ import {
 
 const invitation: InvitationDto = {
   displayName: 'Zoka i Danijela',
+  salutation: 'Dragi',
+  slug: 'zoka-i-danijela',
   guests: [
-    { id: 'a', name: 'Zoka', role: 'muz', attending: null },
-    { id: 'b', name: 'Danijela', role: 'zena', attending: null },
+    {
+      id: 'a',
+      name: 'Zoka',
+      role: 'muz',
+      attending: null,
+      isPlaceholder: false,
+      nameFromGuest: null,
+    },
+    {
+      id: 'b',
+      name: 'Danijela',
+      role: 'zena',
+      attending: null,
+      isPlaceholder: false,
+      nameFromGuest: null,
+    },
   ],
   message: null,
   respondedAt: null,
@@ -85,6 +101,28 @@ describe('invitationReducer', () => {
     expect(state).toMatchObject({ status: 'closed', invitation: { isClosed: true } });
     if (state.status === 'closed')
       expect(state.invitation.guests.map((g) => g.attending)).toEqual([null, null]);
+  });
+
+  it('keeps typed-in names of placeholder members in the draft', () => {
+    const withPlusOne: InvitationDto = {
+      ...invitation,
+      guests: [
+        invitation.guests[0]!,
+        {
+          id: 'p',
+          name: 'Zoka +1',
+          role: 'partner',
+          attending: true,
+          isPlaceholder: true,
+          nameFromGuest: 'Amra',
+        },
+      ],
+    };
+    const state = loaded(withPlusOne);
+    expect(state).toMatchObject({ status: 'form', draft: { names: { p: 'Amra' } } });
+    expect(reduce(state, { type: 'name', guestId: 'p', name: 'Amra B.' })).toMatchObject({
+      draft: { names: { p: 'Amra B.' } },
+    });
   });
 
   it('"Izmijeni odgovor" returns to the form with the saved answers', () => {

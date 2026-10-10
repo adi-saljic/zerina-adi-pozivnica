@@ -2,7 +2,7 @@
 // Also used by the build (og: tags) and scripts/export-links.ts (WhatsApp text),
 // so keep it free of browser APIs; the ".js" import extension is for Node.
 import { event } from '../config/event.js';
-import type { Role, Side } from '../../shared/schemas.js';
+import type { Role, Salutation, Side } from '../../shared/schemas.js';
 
 const roles: Record<Role, string> = {
   muz: 'muž',
@@ -13,9 +13,18 @@ const roles: Record<Role, string> = {
 };
 
 const sides: Record<Side, string> = {
-  adi: 'Adi',
   zerina: 'Zerina',
+  adi: 'Adi',
   zajednicki: 'Zajednički',
+};
+
+/** Shown instead of a placeholder name ("Ljubo +1", "Zokino dijete 1"). */
+const placeholderLabels: Record<Role, string> = {
+  partner: 'Pratnja',
+  dijete: 'Dijete',
+  muz: 'Gost',
+  zena: 'Gost',
+  gost: 'Gost',
 };
 
 const months = [
@@ -51,11 +60,12 @@ export const bs = {
   invalid: {
     title: 'Ovaj link ne radi',
     body: 'Pozivnicu nismo pronašli. Provjerite da ste otvorili cijeli link iz poruke.',
-    contact: 'Ako i dalje ne radi, javite se Adiju ili Zerini.',
+    contact: 'Ako i dalje ne radi, javite se Zerini ili Adiju.',
   },
 
   invitation: {
-    greeting: (displayName: string) => `Zdravo, ${displayName}!`,
+    /** "Dragi Zoka i Danijela," / "Draga Fatima," */
+    greeting: (salutation: Salutation, displayName: string) => `${salutation} ${displayName},`,
     intro: `S radošću vas pozivamo na vjenčanje: ${event.coupleNames}.`,
     alreadyResponded: 'Već ste nam odgovorili. Odgovor možete izmijeniti do roka.',
   },
@@ -74,6 +84,7 @@ export const bs = {
     deadline: (date: string) => `Molimo vas da odgovorite do ${date}.`,
     attending: 'Dolazi',
     notAttending: 'Ne dolazi',
+    placeholderName: 'Ime (nije obavezno)',
     messageLabel: 'Poruka za mladence (nije obavezno)',
     charactersLeft: (n: number) => `Preostalo znakova: ${n}`,
     save: 'Spasi',
@@ -95,7 +106,7 @@ export const bs = {
   closed: {
     title: 'Rok za odgovor je istekao',
     body: (date: string) =>
-      `Odgovore smo primali do ${date}. Ako se nešto promijenilo, javite se Adiju ili Zerini.`,
+      `Odgovore smo primali do ${date}. Ako se nešto promijenilo, javite se Zerini ili Adiju.`,
     yourAnswers: 'Vaši odgovori',
     noAnswer: 'bez odgovora',
   },
@@ -110,9 +121,9 @@ export const bs = {
   },
 
   whatsapp: {
-    invite: ({ displayName, link }: { displayName: string; link: string }) =>
-      `Ćao ${displayName}! 💍 ${event.brideName} i ${event.groomName} se vjenčavaju ${event.dateLabel} ` +
-      `i voljeli bismo da budete s nama. Vaša pozivnica i potvrda dolaska: ${link}`,
+    invite: (p: { salutation: Salutation; displayName: string; url: string }) =>
+      `${p.salutation} ${p.displayName}, ${event.brideName} i ${event.groomName} se vjenčavaju ` +
+      `i bilo bi nam drago da budete s nama 💍 Ovdje je vaša pozivnica i potvrda dolaska: ${p.url}`,
   },
 
   admin: {
@@ -157,4 +168,5 @@ export const bs = {
 
   roles,
   sides,
+  placeholderLabels,
 } as const;

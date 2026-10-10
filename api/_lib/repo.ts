@@ -2,12 +2,15 @@
 // Neon driver sends as bind parameters (never string-concatenated).
 
 import type { AdminSummary, AttendanceCounts, HouseholdBrief } from '../../shared/adminTypes.js';
-import type { GuestDto, RsvpResponseItem, Role, Side } from '../../shared/schemas.js';
+import type { GuestDto, Role, RsvpResponseItem, Salutation, Side } from '../../shared/schemas.js';
+import { invitationPath } from '../../shared/slug.js';
 import { db, toIso } from './db.js';
 
 export interface Household {
   id: string;
+  salutation: Salutation;
   displayName: string;
+  slug: string;
   message: string | null;
   respondedAt: string | null;
   guests: GuestDto[];
@@ -15,16 +18,20 @@ export interface Household {
 
 interface HouseholdRow {
   id: string;
+  salutation: Salutation;
   display_name: string;
+  slug: string;
   message: string | null;
   responded_at: Date | string | null;
-  guests: { id: string; name: string; role: Role; attending: boolean | null }[];
+  guests: GuestDto[];
 }
 
 function toHousehold(row: HouseholdRow): Household {
   return {
     id: row.id,
+    salutation: row.salutation,
     displayName: row.display_name,
+    slug: row.slug,
     message: row.message,
     respondedAt: toIso(row.responded_at),
     guests: row.guests.map((g) => ({
@@ -32,42 +39,47 @@ function toHousehold(row: HouseholdRow): Household {
       name: g.name,
       role: g.role,
       attending: g.attending,
+      isPlaceholder: g.isPlaceholder,
+      nameFromGuest: g.nameFromGuest,
     })),
   };
 }
 
+// Constant SQL text (no user input), shared by the household queries below.
+// Expects the invitation to be aliased as `i`.
+const GUESTS_JSON = `
+  coalesce((
+    select json_agg(json_build_object(
+      'id', g.id, 'name', g.name, 'role', g.role, 'attending', g.attending,
+      'isPlaceholder', g.is_placeholder, 'nameFromGuest', g.name_from_guest
+    ) order by g.sort_order, g.name)
+    from guests g where g.invitation_id = i.id
+  ), '[]'::json) as guests`;
+
 /** Looks up a household by code and records the visit (first/last opened, count). */
 export async function openInvitation(code: string): Promise<Household | null> {
-  const rows = await db()`
+  const sql = db();
+  const rows = await sql`
     with opened as (
       update invitations
       set first_opened_at = coalesce(first_opened_at, now()),
           last_opened_at = now(),
           open_count = open_count + 1
       where code = ${code}
-      returning id, display_name, message, responded_at
+      returning id, salutation, display_name, slug, message, responded_at
     )
-    select o.id, o.display_name, o.message, o.responded_at,
-      coalesce((
-        select json_agg(json_build_object(
-          'id', g.id, 'name', g.name, 'role', g.role, 'attending', g.attending
-        ) order by g.sort_order, g.name)
-        from guests g where g.invitation_id = o.id
-      ), '[]'::json) as guests
-    from opened o`;
+    select i.id, i.salutation, i.display_name, i.slug, i.message, i.responded_at,
+      ${sql.unsafe(GUESTS_JSON)}
+    from opened i`;
   const row = rows[0] as HouseholdRow | undefined;
   return row ? toHousehold(row) : null;
 }
 
 export async function findHouseholdByCode(code: string): Promise<Household | null> {
-  const rows = await db()`
-    select i.id, i.display_name, i.message, i.responded_at,
-      coalesce((
-        select json_agg(json_build_object(
-          'id', g.id, 'name', g.name, 'role', g.role, 'attending', g.attending
-        ) order by g.sort_order, g.name)
-        from guests g where g.invitation_id = i.id
-      ), '[]'::json) as guests
+  const sql = db();
+  const rows = await sql`
+    select i.id, i.salutation, i.display_name, i.slug, i.message, i.responded_at,
+      ${sql.unsafe(GUESTS_JSON)}
     from invitations i
     where i.code = ${code}`;
   const row = rows[0] as HouseholdRow | undefined;
@@ -75,8 +87,9 @@ export async function findHouseholdByCode(code: string): Promise<Household | nul
 }
 
 /**
- * Saves answers, message and a history row in one transaction and returns the
- * updated household. Responses must already be validated against the household.
+ * Saves answers, typed-in names of placeholder members, the message and a
+ * history row in one transaction, and returns the updated household.
+ * Responses must already be validated against the household (validateRsvp).
  */
 export async function saveRsvp(input: {
   invitationId: string;
@@ -87,13 +100,19 @@ export async function saveRsvp(input: {
   const sql = db();
   const ids = responses.map((r) => r.guestId);
   const attending = responses.map((r) => r.attending);
+  // `name` omitted = keep the stored name; "" = clear it.
+  const hasName = responses.map((r) => r.name !== undefined);
+  const names = responses.map((r) => r.name || null);
   const payload = JSON.stringify({ responses, message });
 
   const results = await sql.transaction([
     sql`
       update guests as g
-      set attending = v.attending, updated_at = now()
-      from unnest(${ids}::uuid[], ${attending}::boolean[]) as v(id, attending)
+      set attending = v.attending,
+          name_from_guest = case when v.has_name then v.name else g.name_from_guest end,
+          updated_at = now()
+      from unnest(${ids}::uuid[], ${attending}::boolean[], ${hasName}::boolean[], ${names}::text[])
+        as v(id, attending, has_name, name)
       where g.id = v.id and g.invitation_id = ${invitationId}`,
     sql`
       update invitations
@@ -101,13 +120,8 @@ export async function saveRsvp(input: {
       where id = ${invitationId}`,
     sql`insert into rsvp_log (invitation_id, payload) values (${invitationId}, ${payload}::jsonb)`,
     sql`
-      select i.id, i.display_name, i.message, i.responded_at,
-        coalesce((
-          select json_agg(json_build_object(
-            'id', g.id, 'name', g.name, 'role', g.role, 'attending', g.attending
-          ) order by g.sort_order, g.name)
-          from guests g where g.invitation_id = i.id
-        ), '[]'::json) as guests
+      select i.id, i.salutation, i.display_name, i.slug, i.message, i.responded_at,
+        ${sql.unsafe(GUESTS_JSON)}
       from invitations i
       where i.id = ${invitationId}`,
   ]);
@@ -135,10 +149,10 @@ const counts = (r: CountsRow): AttendanceCounts => ({
 
 interface HouseholdSummaryRow {
   code: string;
+  slug: string;
   household_key: string;
   display_name: string;
   side: Side;
-  table_name: string | null;
   message: string | null;
   open_count: number;
   first_opened_at: Date | string | null;
@@ -146,6 +160,10 @@ interface HouseholdSummaryRow {
   responded_at: Date | string | null;
   guests: number;
   unanswered: number;
+}
+
+export function invitationUrl(baseUrl: string, slug: string, code: string): string {
+  return `${baseUrl}${invitationPath(slug, code)}`;
 }
 
 export async function adminSummary(input: {
@@ -170,22 +188,24 @@ export async function adminSummary(input: {
           count(g.id) filter (where g.attending = false)::int as not_attending,
           count(g.id) filter (where g.id is not null and g.attending is null)::int as no_answer
         from invitations i left join guests g on g.invitation_id = i.id
-        group by i.side order by i.side`,
+        group by i.side
+        order by array_position(array['zerina', 'adi', 'zajednicki'], i.side)`,
+      // Seating is per guest: kids of one household can sit at the kids' table.
       sql`
-        select i.table_name,
-          count(g.id)::int as invited,
-          count(g.id) filter (where g.attending)::int as attending,
-          count(g.id) filter (where g.attending = false)::int as not_attending,
-          count(g.id) filter (where g.id is not null and g.attending is null)::int as no_answer
-        from invitations i left join guests g on g.invitation_id = i.id
-        group by i.table_name order by i.table_name nulls last`,
+        select g.table_name,
+          count(*)::int as invited,
+          count(*) filter (where g.attending)::int as attending,
+          count(*) filter (where g.attending = false)::int as not_attending,
+          count(*) filter (where g.attending is null)::int as no_answer
+        from guests g
+        group by g.table_name order by g.table_name nulls last`,
       sql`
-        select i.code, i.household_key, i.display_name, i.side, i.table_name, i.message,
+        select i.code, i.slug, i.household_key, i.display_name, i.side, i.message,
           i.open_count, i.first_opened_at, i.last_opened_at, i.responded_at,
           count(g.id)::int as guests,
           count(g.id) filter (where g.id is not null and g.attending is null)::int as unanswered
         from invitations i left join guests g on g.invitation_id = i.id
-        group by i.id order by i.display_name`,
+        group by i.id order by i.display_name, i.household_key`,
     ],
     { readOnly: true },
   );
@@ -195,14 +215,13 @@ export async function adminSummary(input: {
     displayName: h.display_name,
     householdKey: h.household_key,
     side: h.side,
-    tableName: h.table_name,
     guests: h.guests,
     unanswered: h.unanswered,
     openCount: h.open_count,
     firstOpenedAt: toIso(h.first_opened_at),
     lastOpenedAt: toIso(h.last_opened_at),
     respondedAt: toIso(h.responded_at),
-    link: `${input.baseUrl}/?g=${h.code}`,
+    link: invitationUrl(input.baseUrl, h.slug, h.code),
   });
 
   const totals = (totalRows?.[0] ?? {
@@ -250,9 +269,13 @@ export interface ExportRow {
   household: string;
   household_key: string;
   side: Side;
+  code: string;
+  slug: string;
   table_name: string | null;
+  /** The name a guest typed for a placeholder member, otherwise the name from the CSV. */
   guest_name: string;
   role: Role;
+  is_placeholder: boolean;
   attending: boolean | null;
   responded_at: Date | string | null;
   message: string | null;
@@ -260,9 +283,11 @@ export interface ExportRow {
 
 export async function exportGuests(): Promise<ExportRow[]> {
   const rows = await db()`
-    select i.display_name as household, i.household_key, i.side, i.table_name,
-      g.name as guest_name, g.role, g.attending, i.responded_at, i.message
+    select i.display_name as household, i.household_key, i.side, i.code, i.slug, g.table_name,
+      coalesce(g.name_from_guest, g.name) as guest_name, g.role, g.is_placeholder,
+      g.attending, i.responded_at, i.message
     from guests g join invitations i on i.id = g.invitation_id
-    order by i.side, i.display_name, g.sort_order, g.name`;
+    order by array_position(array['zerina', 'adi', 'zajednicki'], i.side),
+      i.display_name, i.household_key, g.sort_order`;
   return rows as ExportRow[];
 }
