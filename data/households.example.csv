@@ -1,0 +1,8 @@
+household,side,table_name,guest_name,role,sort_order,display_name
+H001,adi,Sto 1,Marko Marković,muz,1,Marko i Ana
+H001,adi,Sto 1,Ana Marković,zena,2,Marko i Ana
+H002,zerina,Sto 2,Emir Hadžić,muz,1,Porodica Hadžić
+H002,zerina,Sto 2,Lejla Hadžić,zena,2,Porodica Hadžić
+H002,zerina,Sto 2,Amar Hadžić,dijete,3,Porodica Hadžić
+H002,zerina,Sto 2,Sara Hadžić,dijete,4,Porodica Hadžić
+H003,zajednicki,,Tarik Begić,gost,1,Tarik
