@@ -63,20 +63,51 @@ export const bs = {
     contact: 'Ako i dalje ne radi, javite se Zerini ili Adiju.',
   },
 
+  /** Step names in the progress indicator (the envelope is not counted). */
+  steps: {
+    invitation: 'Pozivnica',
+    details: 'Gdje i kada',
+    rsvp: 'Potvrda',
+    message: 'Poruka',
+    progress: (n: number, total: number) => `Korak ${n} od ${total}`,
+    next: 'Dalje',
+    back: 'Nazad',
+  },
+
+  cover: {
+    eyebrow: 'Pozivnica za',
+    greeting: (salutation: Salutation, displayName: string) => `${salutation} ${displayName}`,
+    open: 'Otvori pozivnicu',
+    photoAlt: `${event.brideName} i ${event.groomName}`,
+  },
+
+  music: {
+    play: 'Pusti muziku',
+    pause: 'Pauziraj muziku',
+  },
+
   invitation: {
     /** "Dragi Zoka i Danijela," / "Draga Fatima," */
     greeting: (salutation: Salutation, displayName: string) => `${salutation} ${displayName},`,
-    intro: `S radošću vas pozivamo na vjenčanje: ${event.coupleNames}.`,
+    invite: 'S radošću vas pozivamo na naše vjenčanje',
+    body: 'Bit će nam veliko zadovoljstvo da ovaj dan provedete s nama.',
+    /** "Do vjenčanja još 223 dana" */
+    countdown: (days: number) => {
+      const unit = days % 10 === 1 && days % 100 !== 11 ? 'dan' : 'dana';
+      return `Do vjenčanja još ${days} ${unit}`;
+    },
+    today: 'Danas je naš dan!',
     alreadyResponded: 'Već ste nam odgovorili. Odgovor možete izmijeniti do roka.',
   },
 
   event: {
-    heading: 'Detalji',
+    heading: 'Gdje i kada',
     date: 'Datum',
     time: 'Vrijeme',
     venue: 'Mjesto',
     address: 'Adresa',
-    map: 'Otvori mapu',
+    map: 'Otvori u Google Maps',
+    mapTitle: `Karta: ${event.venueName}`,
   },
 
   form: {
@@ -85,16 +116,20 @@ export const bs = {
     attending: 'Dolazi',
     notAttending: 'Ne dolazi',
     placeholderName: 'Ime (nije obavezno)',
-    messageLabel: 'Poruka za mladence (nije obavezno)',
+    messageHeading: 'Poruka za mladence',
+    messageLabel: 'Želite li nam nešto poručiti? (nije obavezno)',
+    summary: 'Vaš odgovor',
     charactersLeft: (n: number) => `Preostalo znakova: ${n}`,
     save: 'Spasi',
-    answerEveryone: 'Označite odgovor za svaku osobu da biste mogli spasiti.',
+    answerEveryone: 'Označite odgovor za svaku osobu da biste mogli nastaviti.',
   },
 
   saving: 'Spašavamo vaš odgovor…',
 
   saved: {
-    title: 'Hvala! Vaš odgovor je spašen.',
+    title: 'Hvala!',
+    subtitle: 'Vaš odgovor je spašen.',
+    seeYou: "Radujemo se što ćemo se vidjeti!",
     coming: 'Dolaze',
     notComing: 'Ne dolaze',
     nobodyComing: 'Žao nam je što nećete moći doći. Hvala što ste nam javili.',
@@ -127,43 +162,71 @@ export const bs = {
   },
 
   admin: {
-    title: 'Pregled odgovora',
+    title: 'Pregled gostiju',
     tokenLabel: 'Admin token',
     remember: 'Zapamti na ovom uređaju',
     login: 'Prikaži',
     logout: 'Odjavi se',
     refresh: 'Osvježi',
-    downloadCsv: 'Preuzmi CSV (Excel)',
+    downloadCsv: 'CSV (Excel)',
     loading: 'Učitavanje…',
     wrongToken: 'Token nije ispravan.',
     unavailable: 'Admin nije dostupan (token nije podešen na serveru).',
-    failed: 'Učitavanje nije uspjelo. Pokušajte ponovo.',
+    failed: 'Nije uspjelo. Pokušajte ponovo.',
     generatedAt: (date: string) => `Stanje: ${date}`,
     deadline: (date: string, closed: boolean) => `Rok: ${date}${closed ? ' (istekao)' : ''}`,
-    totals: 'Ukupno',
-    invited: 'Pozvano',
+
+    // Stat tiles
+    guests: 'Gostiju',
     attending: 'Dolazi',
     notAttending: 'Ne dolazi',
     noAnswer: 'Bez odgovora',
-    households: 'Domaćinstava',
-    householdsOpened: 'Otvorilo link',
-    householdsResponded: 'Odgovorilo',
+    sent: 'Poslano',
+    opened: 'Otvorilo',
+    answered: 'Odgovorilo',
+    ofHouseholds: (total: number) => `od ${total} domaćinstava`,
+
+    // Household list
+    households: 'Domaćinstva',
+    search: 'Traži ime',
+    filterAll: 'Sva',
+    filterToSend: 'Za poslati',
+    filterWaiting: 'Poslano, nije otvoreno',
+    filterOpened: 'Otvorili, bez odgovora',
+    filterAnswered: 'Odgovorili',
+    sideAll: 'Obje strane',
+    noMatches: 'Nijedno domaćinstvo ne odgovara filteru.',
+    statusNew: 'Nije poslano',
+    statusSent: 'Poslano',
+    statusOpened: 'Otvoreno',
+    statusAnswered: 'Odgovorili',
+    partial: 'novi gost bez odgovora',
+    sentFor: (name: string) => `Poslano: ${name}`,
+    sentOn: (date: string) => `Poslano ${date}`,
+    notOpened: 'nije otvoreno',
+    openedInfo: (count: number, date: string) => `otvoreno ${count}× · ${date}`,
+    answeredOn: (date: string) => `odgovor ${date}`,
+    memberAttending: 'dolazi',
+    memberNotAttending: 'ne dolazi',
+    memberNoAnswer: 'bez odgovora',
+    copyMessage: 'Poruka',
+    copyMessageLabel: (name: string) => `Kopiraj WhatsApp poruku za: ${name}`,
+    copyLink: 'Link',
+    copyLinkLabel: (name: string) => `Kopiraj link za: ${name}`,
+    whatsapp: 'WhatsApp',
+    whatsappLabel: (name: string) => `Otvori WhatsApp sa porukom za: ${name}`,
+    copied: 'Kopirano ✓',
+
+    // Side panels
     bySide: 'Po strani',
     byTable: 'Po stolu',
     side: 'Strana',
     table: 'Sto',
     noTable: 'bez stola',
-    notResponded: 'Nisu odgovorili',
-    notOpened: 'Nisu otvorili link',
-    partiallyAnswered: 'Djelimično odgovorili (dodan gost nakon odgovora)',
+    householdsShort: 'Dom.',
+    invitedShort: 'Pozv.',
     messages: 'Poruke gostiju',
     none: 'Nema.',
-    household: 'Domaćinstvo',
-    guests: 'Gostiju',
-    opened: 'Otvoreno',
-    link: 'Link',
-    copy: 'Kopiraj link',
-    copied: 'Kopirano',
   },
 
   roles,

@@ -2,11 +2,12 @@ import type { AdminSummary } from '../../shared/adminTypes';
 import { apiErrorSchema } from '../../shared/schemas';
 import { ApiError } from '../lib/apiClient';
 
-async function adminFetch(path: string, token: string): Promise<Response> {
+async function adminFetch(path: string, token: string, init: RequestInit = {}): Promise<Response> {
   let response: Response;
   try {
     response = await fetch(path, {
-      headers: { authorization: `Bearer ${token}` },
+      ...init,
+      headers: { ...init.headers, authorization: `Bearer ${token}` },
       credentials: 'same-origin',
       cache: 'no-store',
     });
@@ -22,6 +23,19 @@ async function adminFetch(path: string, token: string): Promise<Response> {
 
 export async function fetchAdminSummary(token: string): Promise<AdminSummary> {
   return (await (await adminFetch('/api/admin/summary', token)).json()) as AdminSummary;
+}
+
+export async function setHouseholdSent(
+  token: string,
+  householdKey: string,
+  sent: boolean,
+): Promise<{ sentAt: string | null }> {
+  const response = await adminFetch('/api/admin/sent', token, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ householdKey, sent }),
+  });
+  return (await response.json()) as { sentAt: string | null };
 }
 
 /** The token travels in a header, so a plain <a href> can't be used: fetch, then save the blob. */

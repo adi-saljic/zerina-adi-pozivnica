@@ -54,6 +54,21 @@ describe('invitationReducer', () => {
     expect(reduce(both, { type: 'submit' }).status).toBe('saving');
   });
 
+  it('starts the steps at the envelope, and "Izmijeni odgovor" jumps straight to the answers', () => {
+    expect(loaded()).toMatchObject({ status: 'form', startAt: 'cover' });
+    const saved = reduce({ status: 'saved', invitation }, { type: 'edit' });
+    expect(saved).toMatchObject({ status: 'form', startAt: 'rsvp' });
+  });
+
+  it('returns to the last step (message) after a failed save', () => {
+    let state: InvitationState = loaded();
+    state = reduce(state, { type: 'answer', guestId: 'a', attending: true });
+    state = reduce(state, { type: 'answer', guestId: 'b', attending: true });
+    state = reduce(state, { type: 'submit' });
+    state = reduce(state, { type: 'saveFailed', rateLimited: false });
+    expect(reduce(state, { type: 'backToForm' })).toMatchObject({ status: 'form', startAt: 'message' });
+  });
+
   it('pre-fills answers and message of a household that already responded', () => {
     const responded = {
       ...invitation,

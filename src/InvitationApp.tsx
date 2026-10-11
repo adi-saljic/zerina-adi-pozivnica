@@ -1,14 +1,25 @@
 import { ClosedScreen } from './components/ClosedScreen';
 import { ErrorScreen } from './components/ErrorScreen';
 import { InvalidLinkScreen } from './components/InvalidLinkScreen';
-import { InvitationScreen } from './components/InvitationScreen';
 import { LoadingScreen } from './components/LoadingScreen';
+import { MusicToggle } from './components/MusicToggle';
 import { SavedScreen } from './components/SavedScreen';
 import { SavingScreen } from './components/SavingScreen';
+import { InvitationFlow } from './components/flow/InvitationFlow';
 import { useInvitation } from './hooks/useInvitation';
 
-/** Picks the screen for the current state; all logic lives in useInvitation. */
+/** The current screen plus the music button, which stays across screens. */
 export function InvitationApp({ code }: { code: string | null }) {
+  return (
+    <>
+      <InvitationScreens code={code} />
+      <MusicToggle />
+    </>
+  );
+}
+
+/** Picks the screen for the current state; all logic lives in useInvitation. */
+function InvitationScreens({ code }: { code: string | null }) {
   const { state, setAnswer, setName, setMessage, save, edit, backToForm, retryLoad } =
     useInvitation(code);
 
@@ -19,9 +30,10 @@ export function InvitationApp({ code }: { code: string | null }) {
       return <InvalidLinkScreen />;
     case 'form':
       return (
-        <InvitationScreen
+        <InvitationFlow
           invitation={state.invitation}
           draft={state.draft}
+          startAt={state.startAt}
           onAnswer={setAnswer}
           onName={setName}
           onMessage={setMessage}

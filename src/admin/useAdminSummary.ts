@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import type { AdminSummary } from '../../shared/adminTypes';
 import { ApiError } from '../lib/apiClient';
 import { bs } from '../i18n/bs';
-import { downloadGuestsCsv, fetchAdminSummary } from './adminApi';
+import { downloadGuestsCsv, fetchAdminSummary, setHouseholdSent } from './adminApi';
 
 const STORAGE_KEY = 'pozivnica.adminToken';
 
@@ -56,6 +56,47 @@ export function useAdminSummary() {
     }
   }, []);
 
+  /** Reloads in the background: the dashboard stays on screen. */
+  const refresh = useCallback(async () => {
+    try {
+      const summary = await fetchAdminSummary(token);
+      setState({ status: 'ready', summary });
+    } catch (error) {
+      window.alert(errorText(error));
+    }
+  }, [token]);
+
+  const patchHousehold = useCallback((householdKey: string, sentAt: string | null) => {
+    setState((current) =>
+      current.status === 'ready'
+        ? {
+            status: 'ready',
+            summary: {
+              ...current.summary,
+              households: current.summary.households.map((h) =>
+                h.householdKey === householdKey ? { ...h, sentAt } : h,
+              ),
+            },
+          }
+        : current,
+    );
+  }, []);
+
+  /** Ticks "Poslano" right away, then saves; undone if saving fails. */
+  const markSent = useCallback(
+    async (householdKey: string, sent: boolean, previous: string | null) => {
+      patchHousehold(householdKey, sent ? (previous ?? new Date().toISOString()) : null);
+      try {
+        const saved = await setHouseholdSent(token, householdKey, sent);
+        patchHousehold(householdKey, saved.sentAt);
+      } catch (error) {
+        patchHousehold(householdKey, previous);
+        window.alert(errorText(error));
+      }
+    },
+    [token, patchHousehold],
+  );
+
   const download = useCallback(async () => {
     try {
       await downloadGuestsCsv(token);
@@ -70,5 +111,5 @@ export function useAdminSummary() {
     setState({ status: 'idle', error: null });
   }, []);
 
-  return { token, storedToken, state, load, download, logout };
+  return { storedToken, state, load, refresh, markSent, download, logout };
 }

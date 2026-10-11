@@ -1,0 +1,79 @@
+.monogram {
+  display: block;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1.2;
+}
+
+.ringThin {
+  fill: none;
+  stroke: var(--color-gold-soft);
+  stroke-width: 0.8;
+}
+
+.letter {
+  font-family: var(--font-script);
+  font-size: 46px;
+  fill: var(--color-text);
+  text-anchor: middle;
+}
+
+.amp {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px;
+  fill: var(--color-gold);
+  text-anchor: middle;
+}
+
+.divider {
+  display: block;
+  width: min(13.75rem, 70%);
+  height: auto;
+  margin: var(--space-4) auto;
+}
+
+.line {
+  fill: none;
+  stroke: var(--color-gold-soft);
+  stroke-width: 1;
+}
+
+.leaf {
+  fill: var(--color-gold-faint);
+  stroke: var(--color-gold);
+  stroke-width: 0.8;
+}
+
+.diamond {
+  fill: var(--color-gold);
+}
+
+.sprig {
+  display: block;
+  pointer-events: none;
+}
+
+.stem {
+  fill: none;
+  stroke: var(--color-gold);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.sprigLeaf {
+  fill: var(--color-accent);
+  fill-opacity: 0.22;
+  stroke: var(--color-accent);
+  stroke-opacity: 0.55;
+  stroke-width: 0.8;
+}
+
+.berry {
+  fill: var(--color-gold);
+}

@@ -27,7 +27,7 @@ export function GuestAnswer({
   const nameInputId = `guest-name-${guest.id}`;
   return (
     <fieldset className={styles.guest}>
-      <legend className={styles.name}>
+      <legend className={`${styles.name} ${guest.isPlaceholder ? styles.placeholder : ''}`}>
         {guest.isPlaceholder ? bs.placeholderLabels[guest.role] : guest.name}
       </legend>
       <div className={styles.options}>

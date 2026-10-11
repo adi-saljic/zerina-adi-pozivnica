@@ -5,6 +5,7 @@
 // error(save) keeps the draft, so a retry or "back" never loses selections.
 
 import type { InvitationDto } from '../../shared/schemas';
+import type { FlowStep } from './steps';
 
 export type Answers = Record<string, boolean | null>;
 
@@ -20,7 +21,7 @@ export type ErrorReason = 'load' | 'save' | 'rate_limited';
 export type InvitationState =
   | { status: 'loading' }
   | { status: 'invalid' }
-  | { status: 'form'; invitation: InvitationDto; draft: Draft }
+  | { status: 'form'; invitation: InvitationDto; draft: Draft; startAt: FlowStep }
   | { status: 'saving'; invitation: InvitationDto; draft: Draft }
   | { status: 'saved'; invitation: InvitationDto }
   | { status: 'closed'; invitation: InvitationDto }
@@ -66,7 +67,12 @@ export function invitationReducer(
     case 'loaded':
       return action.invitation.isClosed
         ? { status: 'closed', invitation: action.invitation }
-        : { status: 'form', invitation: action.invitation, draft: draftFrom(action.invitation) };
+        : {
+            status: 'form',
+            invitation: action.invitation,
+            draft: draftFrom(action.invitation),
+            startAt: 'cover',
+          };
 
     case 'notFound':
       return { status: 'invalid' };
@@ -125,10 +131,15 @@ export function invitationReducer(
 
     case 'edit':
       if (state.status !== 'saved') return state;
-      return { status: 'form', invitation: state.invitation, draft: draftFrom(state.invitation) };
+      return {
+        status: 'form',
+        invitation: state.invitation,
+        draft: draftFrom(state.invitation),
+        startAt: 'rsvp',
+      };
 
     case 'backToForm':
       if (state.status !== 'error' || !state.invitation || !state.draft) return state;
-      return { status: 'form', invitation: state.invitation, draft: state.draft };
+      return { status: 'form', invitation: state.invitation, draft: state.draft, startAt: 'message' };
   }
 }

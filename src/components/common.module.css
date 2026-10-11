@@ -1,93 +1,189 @@
+/* Shared building blocks for all screens. */
+
 .centered {
-  min-height: 60vh;
+  min-height: 70dvh;
   display: grid;
-  place-items: center;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
   padding: var(--space-6) var(--space-4);
   text-align: center;
-}
-
-.section {
-  margin: var(--space-6) 0;
-}
-
-.heading {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-lg);
-  margin: 0 0 var(--space-3);
-}
-
-.subheading {
-  font-size: var(--font-size-base);
-  margin: var(--space-4) 0 var(--space-2);
-}
-
-.details {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: var(--space-2) var(--space-4);
-  margin: 0;
-}
-
-.details > div {
-  display: contents;
-}
-
-.details dt {
   color: var(--color-muted);
 }
 
-.details dd {
+.pulse {
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.subheading {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  line-height: 1.4;
+}
+
+.text {
   margin: 0;
 }
 
 .muted {
+  margin: 0;
   color: var(--color-muted);
   font-size: var(--font-size-sm);
-  margin: var(--space-2) 0;
+}
+
+.italic {
+  font-style: italic;
 }
 
 .message {
+  margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  font-style: italic;
+}
+
+/* Label / value pairs (date, time, venue...). */
+.details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.details dt {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-top: var(--space-3);
+}
+
+.details dt:first-child {
+  margin-top: 0;
+}
+
+.details dd {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--font-size-lg);
 }
 
 .actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
   gap: var(--space-3);
+  margin-top: var(--space-6);
 }
 
 .primaryButton,
-.secondaryButton {
+.secondaryButton,
+.linkButton {
   font: inherit;
+  font-family: var(--font-heading);
   font-weight: 600;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   min-height: var(--tap-size);
-  padding: var(--space-2) var(--space-6);
-  border-radius: var(--radius);
-  border: 2px solid var(--color-accent);
+  padding: var(--space-3) var(--space-8);
+  border-radius: var(--radius-pill);
   cursor: pointer;
+  transition:
+    background-color 0.2s var(--ease),
+    color 0.2s var(--ease),
+    transform 0.2s var(--ease);
 }
 
 .primaryButton {
+  border: 1px solid var(--color-accent);
   background: var(--color-accent);
   color: var(--color-accent-contrast);
-  width: 100%;
+  min-width: min(15rem, 100%);
+  box-shadow: 0 6px 16px -10px rgb(67 80 57 / 0.8);
 }
 
-.secondaryButton {
-  background: transparent;
-  color: var(--color-accent);
+.primaryButton:hover:not(:disabled) {
+  background: var(--color-accent-dark);
+}
+
+.primaryButton:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .primaryButton:disabled {
   background: var(--color-disabled);
   border-color: var(--color-disabled);
   color: var(--color-disabled-text);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
-@media (min-width: 30rem) {
-  .primaryButton {
-    width: auto;
+.secondaryButton {
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-gold);
+  background: var(--color-gold-faint);
+}
+
+/* A link that looks like a secondary button (e.g. "Otvori u Google Maps"). */
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.linkButton:hover {
+  border-color: var(--color-gold);
+  background: var(--color-gold-faint);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
   }
 }

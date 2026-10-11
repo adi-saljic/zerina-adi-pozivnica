@@ -1,0 +1,47 @@
+.toggle {
+  position: fixed;
+  right: var(--space-4);
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  z-index: 10;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-gold-soft);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-gold);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  animation: toggle-in 0.4s var(--ease) both;
+}
+
+.toggle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.speaker {
+  fill: currentColor;
+}
+
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+@keyframes toggle-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}

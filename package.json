@@ -23,6 +23,8 @@
     "links:export": "tsx scripts/export-links.ts"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@fontsource/pinyon-script": "5.3.0",
     "@neondatabase/serverless": "1.2.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",

@@ -2,8 +2,10 @@ import type { InvitationDto } from '../../shared/schemas';
 import { bs } from '../i18n/bs';
 import { formatDateTime } from '../lib/format';
 import { guestDisplayName } from '../lib/guestName';
-import styles from './common.module.css';
-import { EventDetails } from './EventDetails';
+import { AnswerSummary } from './AnswerSummary';
+import common from './common.module.css';
+import { Divider } from './decor/Decor';
+import { EventSummary } from './EventSummary';
 import { Screen } from './Screen';
 
 export function SavedScreen({
@@ -13,48 +15,37 @@ export function SavedScreen({
   invitation: InvitationDto;
   onEdit: () => void;
 }) {
-  const coming = invitation.guests.filter((g) => g.attending === true);
-  const notComing = invitation.guests.filter((g) => g.attending === false);
-
+  const anyoneComing = invitation.guests.some((g) => g.attending === true);
   return (
-    <Screen title={bs.saved.title}>
-      <section className={styles.section} aria-label={bs.closed.yourAnswers}>
-        {coming.length === 0 ? (
-          <p>{bs.saved.nobodyComing}</p>
-        ) : (
-          <>
-            <h2 className={styles.heading}>{bs.saved.coming}</h2>
-            <ul>
-              {coming.map((g) => (
-                <li key={g.id}>{guestDisplayName(g)}</li>
-              ))}
-            </ul>
-          </>
-        )}
-        {notComing.length > 0 && coming.length > 0 && (
-          <>
-            <h2 className={styles.heading}>{bs.saved.notComing}</h2>
-            <ul>
-              {notComing.map((g) => (
-                <li key={g.id}>{guestDisplayName(g)}</li>
-              ))}
-            </ul>
-          </>
-        )}
+    <Screen title={bs.saved.title} titleStyle="script">
+      <p className={common.lead}>{bs.saved.subtitle}</p>
+      <Divider />
+      <section className={common.section} aria-label={bs.closed.yourAnswers}>
+        <AnswerSummary
+          guests={invitation.guests.map((g) => ({
+            id: g.id,
+            label: guestDisplayName(g),
+            attending: g.attending,
+          }))}
+        />
         {invitation.message && (
           <>
-            <h2 className={styles.heading}>{bs.saved.yourMessage}</h2>
-            <p className={styles.message}>{invitation.message}</p>
+            <h2 className={common.subheading}>{bs.saved.yourMessage}</h2>
+            <p className={common.message}>{invitation.message}</p>
           </>
         )}
       </section>
+      {anyoneComing && <p className={`${common.lead} ${common.italic}`}>{bs.saved.seeYou}</p>}
 
-      <p>{bs.saved.canEditUntil(formatDateTime(invitation.deadline))}</p>
-      <button type="button" className={styles.secondaryButton} onClick={onEdit}>
-        {bs.saved.edit}
-      </button>
+      <div className={common.actions}>
+        <button type="button" className={common.secondaryButton} onClick={onEdit}>
+          {bs.saved.edit}
+        </button>
+        <p className={common.muted}>{bs.saved.canEditUntil(formatDateTime(invitation.deadline))}</p>
+      </div>
 
-      <EventDetails />
+      <Divider />
+      <EventSummary />
     </Screen>
   );
 }

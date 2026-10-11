@@ -21,7 +21,9 @@ export function ErrorScreen({
         : bs.error.load;
   return (
     <Screen title={bs.error.title}>
-      <p role="alert">{text}</p>
+      <p role="alert" className={styles.text}>
+        {text}
+      </p>
       <div className={styles.actions}>
         <button type="button" className={styles.primaryButton} onClick={onRetry}>
           {bs.error.retry}

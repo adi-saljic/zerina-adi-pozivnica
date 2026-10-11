@@ -1,0 +1,110 @@
+/* Full-bleed photo, text in the middle over a soft dark veil. */
+.cover {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-10) var(--space-6);
+  text-align: center;
+  background: var(--color-photo-fallback);
+  color: var(--color-on-photo);
+  transition: opacity 0.8s var(--ease);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s var(--ease);
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  /* Darkest behind the text, lighter towards the edges. */
+  background: radial-gradient(
+    ellipse 85% 55% at center,
+    var(--color-photo-shade) 0%,
+    var(--color-photo-shade-soft) 100%
+  );
+}
+
+.content {
+  position: relative;
+  max-width: var(--page-max-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  animation: rise-in 0.9s var(--ease) 0.2s both;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-gold-soft);
+}
+
+.greeting {
+  margin: 0;
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: var(--font-size-script-lg);
+  line-height: 1.15;
+  text-shadow: 0 2px 18px var(--color-photo-shade);
+}
+
+.greeting:focus {
+  outline: none;
+}
+
+.cta {
+  margin-top: var(--space-4);
+  min-height: var(--tap-size);
+  padding: var(--space-3) var(--space-8);
+  border: 1px solid var(--color-gold-soft);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-accent-dark);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 10px 24px -12px var(--color-photo-shade);
+  transition: transform 0.2s var(--ease);
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+}
+
+.cta:focus-visible {
+  outline: 3px solid var(--color-on-photo);
+  outline-offset: var(--focus-offset);
+}
+
+/* Opening: the photo drifts closer while everything fades to paper. */
+.opening {
+  opacity: 0;
+}
+
+.opening .photo {
+  transform: scale(1.08);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}

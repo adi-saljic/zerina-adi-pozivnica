@@ -13,20 +13,44 @@ html {
 
 body {
   margin: 0;
-  background: var(--color-bg);
+  min-height: 100dvh;
+  background-color: var(--color-bg);
+  /* Soft light falling on paper. */
+  background-image:
+    radial-gradient(ellipse 80% 55% at 50% 0%, rgb(255 253 248 / 0.9), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, var(--color-bg-deep), transparent 75%);
+  background-attachment: fixed;
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: var(--font-size-base);
+  font-weight: 500;
   line-height: var(--line-height);
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 a {
-  color: var(--color-accent);
+  color: var(--color-accent-dark);
+  text-underline-offset: 0.2em;
 }
 
 :focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-offset);
+}
+
+::selection {
+  background: var(--color-gold-faint);
 }
 
 .visually-hidden {
@@ -42,8 +66,12 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation: none !important;
-    transition: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
   }
 }

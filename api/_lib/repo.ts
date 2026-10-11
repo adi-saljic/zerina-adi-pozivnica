@@ -1,7 +1,12 @@
 // All SQL lives here. Every value goes through sql`...` interpolation, which the
 // Neon driver sends as bind parameters (never string-concatenated).
 
-import type { AdminSummary, AttendanceCounts, HouseholdBrief } from '../../shared/adminTypes.js';
+import type {
+  AdminHousehold,
+  AdminMember,
+  AdminSummary,
+  AttendanceCounts,
+} from '../../shared/adminTypes.js';
 import type { GuestDto, Role, RsvpResponseItem, Salutation, Side } from '../../shared/schemas.js';
 import { invitationPath } from '../../shared/slug.js';
 import { db, toIso } from './db.js';
@@ -152,14 +157,15 @@ interface HouseholdSummaryRow {
   slug: string;
   household_key: string;
   display_name: string;
+  salutation: Salutation;
   side: Side;
   message: string | null;
+  sent_at: Date | string | null;
   open_count: number;
   first_opened_at: Date | string | null;
   last_opened_at: Date | string | null;
   responded_at: Date | string | null;
-  guests: number;
-  unanswered: number;
+  members: AdminMember[];
 }
 
 export function invitationUrl(baseUrl: string, slug: string, code: string): string {
@@ -200,29 +206,20 @@ export async function adminSummary(input: {
         from guests g
         group by g.table_name order by g.table_name nulls last`,
       sql`
-        select i.code, i.slug, i.household_key, i.display_name, i.side, i.message,
-          i.open_count, i.first_opened_at, i.last_opened_at, i.responded_at,
-          count(g.id)::int as guests,
-          count(g.id) filter (where g.id is not null and g.attending is null)::int as unanswered
+        select i.code, i.slug, i.household_key, i.display_name, i.salutation, i.side, i.message,
+          i.sent_at, i.open_count, i.first_opened_at, i.last_opened_at, i.responded_at,
+          coalesce(
+            json_agg(
+              json_build_object('name', coalesce(g.name_from_guest, g.name), 'attending', g.attending)
+              order by g.sort_order
+            ) filter (where g.id is not null),
+            '[]'
+          ) as members
         from invitations i left join guests g on g.invitation_id = i.id
         group by i.id order by i.display_name, i.household_key`,
     ],
     { readOnly: true },
   );
-
-  const households = (householdRows ?? []) as HouseholdSummaryRow[];
-  const brief = (h: HouseholdSummaryRow): HouseholdBrief => ({
-    displayName: h.display_name,
-    householdKey: h.household_key,
-    side: h.side,
-    guests: h.guests,
-    unanswered: h.unanswered,
-    openCount: h.open_count,
-    firstOpenedAt: toIso(h.first_opened_at),
-    lastOpenedAt: toIso(h.last_opened_at),
-    respondedAt: toIso(h.responded_at),
-    link: invitationUrl(input.baseUrl, h.slug, h.code),
-  });
 
   const totals = (totalRows?.[0] ?? {
     invited: 0,
@@ -235,12 +232,7 @@ export async function adminSummary(input: {
     generatedAt: new Date().toISOString(),
     deadline: input.deadline.toISOString(),
     isClosed: input.isClosed,
-    totals: {
-      ...counts(totals),
-      households: households.length,
-      householdsOpened: households.filter((h) => h.first_opened_at !== null).length,
-      householdsResponded: households.filter((h) => h.responded_at !== null).length,
-    },
+    totals: counts(totals),
     bySide: ((sideRows ?? []) as (CountsRow & { side: Side; households: number })[]).map((r) => ({
       side: r.side,
       households: r.households,
@@ -250,19 +242,37 @@ export async function adminSummary(input: {
       tableName: r.table_name,
       ...counts(r),
     })),
-    notResponded: households.filter((h) => h.responded_at === null).map(brief),
-    notOpened: households.filter((h) => h.first_opened_at === null).map(brief),
-    partiallyAnswered: households
-      .filter((h) => h.responded_at !== null && h.unanswered > 0)
-      .map(brief),
-    messages: households
-      .filter((h): h is HouseholdSummaryRow & { message: string } => !!h.message)
-      .map((h) => ({
+    households: ((householdRows ?? []) as HouseholdSummaryRow[]).map(
+      (h): AdminHousehold => ({
+        householdKey: h.household_key,
         displayName: h.display_name,
-        message: h.message,
+        salutation: h.salutation,
+        side: h.side,
+        members: h.members,
+        sentAt: toIso(h.sent_at),
+        openCount: h.open_count,
+        firstOpenedAt: toIso(h.first_opened_at),
+        lastOpenedAt: toIso(h.last_opened_at),
         respondedAt: toIso(h.responded_at),
-      })),
+        message: h.message,
+        link: invitationUrl(input.baseUrl, h.slug, h.code),
+      }),
+    ),
   };
+}
+
+/** Marks a household as sent (keeps the first time) or clears it. Null if the key is unknown. */
+export async function setHouseholdSent(
+  householdKey: string,
+  sent: boolean,
+): Promise<{ sentAt: string | null } | null> {
+  const rows = await db()`
+    update invitations
+    set sent_at = case when ${sent} then coalesce(sent_at, now()) else null end
+    where household_key = ${householdKey}
+    returning sent_at`;
+  const row = rows[0] as { sent_at: Date | string | null } | undefined;
+  return row ? { sentAt: toIso(row.sent_at) } : null;
 }
 
 export interface ExportRow {

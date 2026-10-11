@@ -2,8 +2,9 @@ import type { InvitationDto } from '../../shared/schemas';
 import { bs } from '../i18n/bs';
 import { formatDateTime } from '../lib/format';
 import { guestDisplayName } from '../lib/guestName';
-import styles from './common.module.css';
-import { EventDetails } from './EventDetails';
+import common from './common.module.css';
+import { Divider } from './decor/Decor';
+import { EventSummary } from './EventSummary';
 import { Screen } from './Screen';
 
 function answerLabel(attending: boolean | null): string {
@@ -14,12 +15,15 @@ function answerLabel(attending: boolean | null): string {
 /** Deadline passed: answers are shown read-only. */
 export function ClosedScreen({ invitation }: { invitation: InvitationDto }) {
   return (
-    <Screen title={bs.closed.title}>
-      <p>{bs.closed.body(formatDateTime(invitation.deadline))}</p>
-
-      <section className={styles.section}>
-        <h2 className={styles.heading}>{bs.closed.yourAnswers}</h2>
-        <dl className={styles.details}>
+    <Screen
+      title={bs.closed.title}
+      eyebrow={bs.invitation.greeting(invitation.salutation, invitation.displayName)}
+    >
+      <p className={common.text}>{bs.closed.body(formatDateTime(invitation.deadline))}</p>
+      <Divider />
+      <section className={common.section}>
+        <h2 className={common.heading}>{bs.closed.yourAnswers}</h2>
+        <dl className={common.details}>
           {invitation.guests.map((g) => (
             <div key={g.id}>
               <dt>{guestDisplayName(g)}</dt>
@@ -29,13 +33,13 @@ export function ClosedScreen({ invitation }: { invitation: InvitationDto }) {
         </dl>
         {invitation.message && (
           <>
-            <h3 className={styles.subheading}>{bs.saved.yourMessage}</h3>
-            <p className={styles.message}>{invitation.message}</p>
+            <h3 className={common.subheading}>{bs.saved.yourMessage}</h3>
+            <p className={common.message}>{invitation.message}</p>
           </>
         )}
       </section>
-
-      <EventDetails />
+      <Divider />
+      <EventSummary />
     </Screen>
   );
 }

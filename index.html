@@ -7,6 +7,23 @@
     <meta name="referrer" content="no-referrer" />
     <meta name="theme-color" content="#fbf8f3" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- Cover photo (shared/event.ts coverImage): start loading it with the JS. -->
+    <link
+      rel="preload"
+      as="image"
+      media="(orientation: portrait)"
+      imagesrcset="/images/cover-720.webp 720w, /images/cover-1440.webp 1440w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      media="(orientation: landscape)"
+      imagesrcset="/images/cover-wide-1280.webp 1280w, /images/cover-wide-2560.webp 2560w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
 
     <!--
       Link preview (WhatsApp, Viber, Messenger…). These tags are static HTML:

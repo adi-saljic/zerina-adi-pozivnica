@@ -34,8 +34,8 @@ npm run db:migrate | db:seed [-- --dry-run|--prune] | links:export
 
 - Households are matched by `household_key`, guests within a household by `sort_order`.
   `sort_order` is the guest's identity: add new members at the end, don't renumber after links are sent.
-- The seed **never writes** `attending`, `message`, `name_from_guest`, `code`, or the open/response
-  timestamps. Codes are generated once. A changed `display_name` only updates `slug`.
+- The seed **never writes** `attending`, `message`, `name_from_guest`, `code`, `sent_at` (set in
+  /admin), or the open/response timestamps. Codes are generated once. A changed `display_name` only updates `slug`.
 - Rows missing from the CSV are only reported. Deleting needs `--prune`, which lists what it would delete
   and asks for confirmation. Opened/answered ones also need `--force`.
 - `data/households.csv` is the real guest list. It is gitignored and must stay that way (also `out/`

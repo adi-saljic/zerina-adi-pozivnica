@@ -16,7 +16,8 @@ import { clientIp, ipKey } from './ip.js';
 export const LIMITS = {
   invitation: { limit: 120, windowSeconds: 600 },
   rsvp: { limit: 30, windowSeconds: 600 },
-  admin: { limit: 60, windowSeconds: 600 },
+  // Generous: ticking "Poslano" for every household is one request each.
+  admin: { limit: 400, windowSeconds: 600 },
 } as const;
 
 export type Bucket = keyof typeof LIMITS;

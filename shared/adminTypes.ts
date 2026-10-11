@@ -1,4 +1,4 @@
-import type { Side } from './schemas.js';
+import type { Salutation, Side } from './schemas.js';
 
 export interface AttendanceCounts {
   invited: number;
@@ -7,16 +7,25 @@ export interface AttendanceCounts {
   noAnswer: number;
 }
 
-export interface HouseholdBrief {
-  displayName: string;
+export interface AdminMember {
+  /** name_from_guest ?? name */
+  name: string;
+  attending: boolean | null;
+}
+
+export interface AdminHousehold {
   householdKey: string;
+  displayName: string;
+  salutation: Salutation;
   side: Side;
-  guests: number;
-  unanswered: number;
+  members: AdminMember[];
+  /** Marked as sent in /admin. */
+  sentAt: string | null;
   openCount: number;
   firstOpenedAt: string | null;
   lastOpenedAt: string | null;
   respondedAt: string | null;
+  message: string | null;
   /** Canonical personal URL: <base>/<slug>-<code> */
   link: string;
 }
@@ -25,17 +34,11 @@ export interface AdminSummary {
   generatedAt: string;
   deadline: string;
   isClosed: boolean;
-  totals: AttendanceCounts & {
-    households: number;
-    householdsOpened: number;
-    householdsResponded: number;
-  };
+  /** Guest counts. Household counts (sent/opened/answered) are derived from `households`. */
+  totals: AttendanceCounts;
   bySide: (AttendanceCounts & { side: Side; households: number })[];
   /** Per guest table (guests.table_name); null = no table assigned yet. */
   byTable: (AttendanceCounts & { tableName: string | null })[];
-  notResponded: HouseholdBrief[];
-  notOpened: HouseholdBrief[];
-  /** Responded, but a guest was added later and has no answer yet. */
-  partiallyAnswered: HouseholdBrief[];
-  messages: { displayName: string; message: string; respondedAt: string | null }[];
+  /** All households, ordered by name. */
+  households: AdminHousehold[];
 }

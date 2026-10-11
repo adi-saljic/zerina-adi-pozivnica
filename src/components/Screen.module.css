@@ -1,19 +1,100 @@
 .page {
   max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: var(--space-6) var(--space-4) var(--space-8);
+  padding: var(--space-6) var(--space-4) var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Double gold frame: the border plus an inset outline, like a foil-printed card. */
+.card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-gold-soft);
+  outline: 1px solid var(--color-gold-soft);
+  outline-offset: -10px;
+  border-radius: 2px;
+  box-shadow: var(--card-shadow);
+  /* Extra room at the bottom for the corner sprig. */
+  padding: var(--space-10) var(--space-6) calc(var(--space-10) + var(--space-6));
+  text-align: center;
+  animation: card-in 0.6s var(--ease) both;
+}
+
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sprigTop,
+.sprigBottom {
+  position: absolute;
+  width: 4.5rem;
+  height: 4.5rem;
+  opacity: 0.9;
+}
+
+.sprigTop {
+  top: 2px;
+  left: 2px;
+}
+
+.sprigBottom {
+  bottom: 2px;
+  right: 2px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.title,
+.titleScript {
+  margin: 0;
+  color: var(--color-text);
 }
 
 .title {
   font-family: var(--font-heading);
   font-size: var(--font-size-xl);
+  font-weight: 600;
   line-height: 1.2;
-  margin: 0 0 var(--space-4);
 }
 
-/* Focus is moved here programmatically so screen readers announce the new
-   screen; the heading isn't interactive, so it needs no visible ring. */
+.titleScript {
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: var(--font-size-script-md);
+  line-height: 1.15;
+  padding-inline: var(--space-4);
+}
+
 .title:focus,
-.title:focus-visible {
+.titleScript:focus {
   outline: none;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (min-width: 30rem) {
+  .page {
+    padding-top: var(--space-10);
+  }
+
+  .card {
+    padding-inline: var(--space-10);
+  }
 }

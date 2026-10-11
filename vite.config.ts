@@ -12,6 +12,7 @@ const DEV_CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "connect-src 'self' ws: wss:",
+  'frame-src https://www.google.com',
   "frame-ancestors 'none'",
   "base-uri 'none'",
   "object-src 'none'",

@@ -1,0 +1,197 @@
+/* ---- Progress ------------------------------------------------------------ */
+
+.progress {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-1);
+  position: relative;
+}
+
+/* Thin gold line behind the dots. */
+.progress::before {
+  content: '';
+  position: absolute;
+  top: 0.4rem;
+  left: 12.5%;
+  right: 12.5%;
+  height: 1px;
+  background: var(--color-gold-soft);
+}
+
+.progress li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-gold);
+  background: var(--color-bg);
+  transition:
+    background-color 0.3s var(--ease),
+    transform 0.3s var(--ease);
+}
+
+.done .dot {
+  background: var(--color-gold);
+}
+
+.current .dot {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  transform: scale(1.2);
+}
+
+.stepLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.current .stepLabel {
+  color: var(--color-text);
+}
+
+.backButton {
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  color: var(--color-muted);
+  background: none;
+  border: 0;
+  min-height: var(--tap-size);
+  padding: 0 var(--space-4);
+  cursor: pointer;
+}
+
+.backButton:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ---- Invitation step -------------------------------------------------------- */
+
+.invite {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.names {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: var(--font-size-script-xl);
+  line-height: 1;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.amp {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.6rem;
+  color: var(--color-gold);
+  margin: 0.15em 0;
+}
+
+.dateBlock {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+}
+
+.weekday {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.dateNumeric {
+  font-size: 1.6rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.countdown {
+  display: inline-block;
+  margin: var(--space-2) auto 0;
+  padding: var(--space-1) var(--space-4);
+  border-top: 1px solid var(--color-gold-soft);
+  border-bottom: 1px solid var(--color-gold-soft);
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+/* ---- RSVP & message ---------------------------------------------------------- */
+
+.guests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  text-align: left;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  text-align: left;
+}
+
+.field label {
+  font-style: italic;
+}
+
+.textarea {
+  font: inherit;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-field);
+  color: var(--color-text);
+  resize: vertical;
+}
+
+.textarea:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.counter {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-muted);
+  text-align: right;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  color: var(--color-muted);
+}
